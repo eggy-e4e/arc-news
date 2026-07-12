@@ -1,0 +1,141 @@
+{
+  "generated_at": "2026-07-12T14:51:48+07:00",
+  "locale": "en-US",
+  "categories": [
+    {
+      "name": "World",
+      "stories": [
+        {
+          "id": "world-china-evacuates-nearly-two-million-people-as-powerful-typhoon-makes-landfall",
+          "headline": "China evacuates nearly two million people as powerful typhoon makes landfall",
+          "summary": "Schools, work and outdoor activities have been suspended in Zhejiang province and many transport services cancelled.",
+          "briefing": "Schools, work and outdoor activities have been suspended in Zhejiang province and many transport services cancelled.",
+          "publisher": "BBC News — World",
+          "published_at": "2026-07-12T07:39:45+00:00",
+          "reading_minutes": 1,
+          "url": "https://www.bbc.co.uk/news/articles/cdxd3wkp2rzo?at_medium=RSS&at_campaign=rss",
+          "image_url": null,
+          "image_alt": null,
+          "topics": [],
+          "developing": false,
+          "sources": [
+            {
+              "publisher": "BBC News — World",
+              "url": "https://www.bbc.co.uk/news/articles/cdxd3wkp2rzo?at_medium=RSS&at_campaign=rss"
+            }
+          ]
+        },
+        {
+          "id": "world-us-senator-lindsey-graham-dies-after-brief-and-sudden-illness-his-office-says",
+          "headline": "US Senator Lindsey Graham dies after 'brief and sudden illness', his office says",
+          "summary": "The influential politician has just returned from Kyiv, where he met Ukraine's President Volodymyr Zelensky on Friday.",
+          "briefing": "The influential politician has just returned from Kyiv, where he met Ukraine's President Volodymyr Zelensky on Friday.",
+          "publisher": "BBC News — World",
+          "published_at": "2026-07-12T07:33:12+00:00",
+          "reading_minutes": 1,
+          "url": "https://www.bbc.co.uk/news/articles/cvgj25j6nmeo?at_medium=RSS&at_campaign=rss",
+          "image_url": null,
+          "image_alt": null,
+          "topics": [],
+          "developing": false,
+          "sources": [
+            {
+              "publisher": "BBC News — World",
+              "url": "https://www.bbc.co.uk/news/articles/cvgj25j6nmeo?at_medium=RSS&at_campaign=rss"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Politics",
+      "stories": [
+        {
+          "id": "politics-lindsey-graham-key-ally-of-donald-trump-has-died-after-sudden-illness-his-office-says",
+          "headline": "Lindsey Graham, key ally of Donald Trump, has died after sudden illness, his office says",
+          "summary": "Republican senator had served in the Senate since 2003 and was a sharp critic of Trump before becoming one of his most…",
+          "briefing": "Republican senator had served in the Senate since 2003 and was a sharp critic of Trump before becoming one of his most loyal backers Lindsey Graham, a longtime US senator and key ally of Donald Trump, has died from a su…",
+          "publisher": "The Guardian — US Politics",
+          "published_at": "2026-07-12T07:01:38+00:00",
+          "reading_minutes": 1,
+          "url": "https://www.theguardian.com/us-news/2026/jul/12/lindsey-graham-key-ally-of-donald-trump-has-died-after-sudden-illness-his-office-says",
+          "image_url": null,
+          "image_alt": null,
+          "topics": [],
+          "developing": false,
+          "sources": [
+            {
+              "publisher": "The Guardian — US Politics",
+              "url": "https://www.theguardian.com/us-news/2026/jul/12/lindsey-graham-key-ally-of-donald-trump-has-died-after-sudden-illness-his-office-says"
+            }
+          ]
+        },
+        {
+          "id": "politics-us-allies-apprehensive-after-capricious-trump-changes-tune-at-nato-summit",
+          "headline": "US allies apprehensive after capricious Trump changes tune at Nato summit",
+          "summary": "Sudden shift may be linked to affinity for Erdoğan but what might be consequences of erratic behavior towards alliance?…",
+          "briefing": "Sudden shift may be linked to affinity for Erdoğan but what might be consequences of erratic behavior towards alliance? Donald Trump’s relationship with Washington’s Nato allies is nobody’s idea of a happy marriage. But…",
+          "publisher": "The Guardian — US Politics",
+          "published_at": "2026-07-12T05:00:09+00:00",
+          "reading_minutes": 1,
+          "url": "https://www.theguardian.com/us-news/2026/jul/12/trump-nato-summit-ankara",
+          "image_url": null,
+          "image_alt": null,
+          "topics": [],
+          "developing": false,
+          "sources": [
+            {
+              "publisher": "The Guardian — US Politics",
+              "url": "https://www.theguardian.com/us-news/2026/jul/12/trump-nato-summit-ankara"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Business",
+      "stories": [
+        {
+          "id": "business-uk-s-public-spending-watchdog-to-investigate-lower-thames-crossing-project",
+          "headline": "UK’s public spending watchdog to investigate Lower Thames Crossing project",
+          "summary": "Exclusive: Campaigners voice concerns over rising costs of £11bn Essex to Kent road tunnel The UK’s public spending wat…",
+          "briefing": "Exclusive: Campaigners voice concerns over rising costs of £11bn Essex to Kent road tunnel The UK’s public spending watchdog has said it plans to investigate the Lower Thames Crossing , as campaigners voice concerns ove…",
+          "publisher": "The Guardian — Business",
+          "published_at": "2026-07-12T07:00:11+00:00",
+          "reading_minutes": 1,
+          "url": "https://www.theguardian.com/uk-news/2026/jul/12/public-spending-watchdog-investigate-lower-thames-crossing-project",
+          "image_url": null,
+          "image_alt": null,
+          "topics": [],
+          "developing": false,
+          "sources": [
+            {
+              "publisher": "The Guardian — Business",
+              "url": "https://www.theguardian.com/uk-news/2026/jul/12/public-spending-watchdog-investigate-lower-thames-crossing-project"
+            }
+          ]
+        },
+        {
+          "id": "business-super-el-ni-o-could-cause-global-food-price-shock-lasting-into-2028-analysts-say",
+          "headline": "‘Super’ El Niño could cause global food price shock lasting into 2028, analysts say",
+          "summary": "Weather cycle threatens harvests worldwide, adding to inflation already fuelled by the Iran war Economists are warning…",
+          "briefing": "Weather cycle threatens harvests worldwide, adding to inflation already fuelled by the Iran war Economists are warning that a “super” El Niño weather cycle this year could cause a severe shock to global food prices last…",
+          "publisher": "The Guardian — Business",
+          "published_at": "2026-07-12T07:00:11+00:00",
+          "reading_minutes": 1,
+          "url": "https://www.theguardian.com/business/2026/jul/12/super-el-nino-severe-shock-global-food-prices-lasting-into-2028-economists-warn",
+          "image_url": null,
+          "image_alt": null,
+          "topics": [],
+          "developing": false,
+          "sources": [
+            {
+              "publisher": "The Guardian — Business",
+              "url": "https://www.theguardian.com/business/2026/jul/12/super-el-nino-severe-shock-global-food-prices-lasting-into-2028-economists-warn"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
