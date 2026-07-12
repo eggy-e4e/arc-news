@@ -2,40 +2,40 @@
 
 This is the practical Shortcuts action list for turning Arc into a working Shortcut.
 
-Best current architecture for this Mac:
+Best current architecture:
 
 ```text
-Mac Shortcut
-  -> Run Shell Script: scrape RSS locally
-  -> Use Model: Apple Intelligence creates Arc edition JSON
-  -> Run Shell Script: encode JSON into Arc URL
-  -> Open URLs: hosted GitHub Pages Arc app
+Cloudflare Worker
+  -> scrape configured RSS feeds
+  -> parse and rank stories
+  -> serve /arc.edition.json
+iOS Shortcut
+  -> Open URLs: Cloudflare Arc app
 ```
 
-This keeps scraping/parsing local and uses the hosted GitHub Pages app only as the reader UI.
+This keeps scraping/parsing on Cloudflare and gives the Shortcut a stable HTTPS URL.
 
-Recommended path: host `index.html` somewhere HTTPS-accessible, then let the Shortcut open:
+Current live URL:
 
 ```text
-https://YOUR_ARC_HOST/index.html?edition=ENCODED_JSON
+https://arc-news.oneplus2x69.workers.dev/
 ```
 
-This Arc app is now hosted at:
+The Worker generates fresh reader data at:
 
 ```text
-https://eggy-e4e.github.io/arc-news/
+https://arc-news.oneplus2x69.workers.dev/arc.edition.json
 ```
 
 Use this as the `ArcURL` variable in Shortcuts.
 
-The Shortcut can still run without a backend. It gathers RSS, asks Apple Intelligence to produce Arc edition JSON, URL-encodes that JSON, and opens Arc.
+The older Apple Intelligence flow is still useful as an optional fallback or experiment: gather RSS, ask Apple Intelligence to produce Arc edition JSON, URL-encode that JSON, and open Arc with `?edition=`.
 
 ## Requirements
 
-- Mac with Apple Intelligence actions available in Shortcuts for the recommended local scraper flow.
-- iPhone with Apple Intelligence actions available in Shortcuts only if using the iPhone-only flow.
-- Arc `index.html` hosted at an HTTPS URL.
-- The text from `arc.config.json` field `apple_intelligence_prompt`.
+- iPhone with Shortcuts.
+- Live Cloudflare Worker URL.
+- The text from `arc.config.json` field `apple_intelligence_prompt` only if using the optional Apple Intelligence route.
 
 ## Mac-Local Shortcut Name
 
@@ -200,7 +200,7 @@ Open Arc Briefing
 Action: `Text`
 
 ```text
-https://eggy-e4e.github.io/arc-news/
+https://arc-news.oneplus2x69.workers.dev/
 ```
 
 Action: `Set Variable`

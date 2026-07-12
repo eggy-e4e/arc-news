@@ -9,7 +9,7 @@ import sys
 import urllib.parse
 
 
-DEFAULT_ARC_URL = "https://eggy-e4e.github.io/arc-news/"
+DEFAULT_ARC_URL = "https://arc-news.oneplus2x69.workers.dev/"
 
 
 def main() -> int:
