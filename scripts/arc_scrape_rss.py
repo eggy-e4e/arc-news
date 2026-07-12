@@ -76,6 +76,27 @@ def child_attr(node: ET.Element, child_name: str, attr: str) -> str:
     return ""
 
 
+def child_image_url(node: ET.Element) -> str | None:
+    for child in list(node):
+        tag = child.tag.rsplit("}", 1)[-1].lower()
+        attrs = {key.rsplit("}", 1)[-1].lower(): value for key, value in child.attrib.items()}
+        candidate = ""
+        if tag in {"content", "thumbnail"} and attrs.get("url"):
+            candidate = attrs["url"]
+        elif tag == "image" and (attrs.get("url") or attrs.get("href")):
+            candidate = attrs.get("url") or attrs.get("href") or ""
+        elif tag == "enclosure" and attrs.get("url") and attrs.get("type", "").startswith("image/"):
+            candidate = attrs["url"]
+        if candidate and not re.search(r"rss-pixel|tracking|/pixel[.?/]", candidate, re.I):
+            return normalize_image_url(html.unescape(candidate.strip()))
+    return None
+
+
+def normalize_image_url(url: str) -> str:
+    url = re.sub(r"([?&])width=\d+", r"\1width=1200", url, flags=re.I)
+    return re.sub(r"/standard/240/", "/standard/1024/", url, flags=re.I)
+
+
 def parse_feed(xml_text: str, category: str, source: dict) -> list[dict]:
     source_name = source.get("name", "")
     source_url = source.get("url", "")
@@ -91,6 +112,7 @@ def parse_feed(xml_text: str, category: str, source: dict) -> list[dict]:
         link = child_text(node, ("link",)) or child_attr(node, "link", "href")
         summary = child_text(node, ("description", "summary", "content", "encoded"))
         published = parse_date(child_text(node, ("pubdate", "published", "updated", "date")))
+        image_url = child_image_url(node)
         guid = child_text(node, ("guid", "id")) or link or title
         if not title:
             continue
@@ -105,6 +127,8 @@ def parse_feed(xml_text: str, category: str, source: dict) -> list[dict]:
                 "summary": summary,
                 "url": link,
                 "published_at": published,
+                "image_url": image_url,
+                "image_alt": title if image_url else None,
             }
         )
     return entries

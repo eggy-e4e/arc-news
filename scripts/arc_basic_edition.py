@@ -47,8 +47,8 @@ def build_story(item: dict) -> dict:
         "published_at": item.get("published_at"),
         "reading_minutes": 1,
         "url": item.get("url"),
-        "image_url": None,
-        "image_alt": None,
+        "image_url": item.get("image_url"),
+        "image_alt": item.get("image_alt"),
         "topics": [],
         "developing": False,
         "sources": [

@@ -1,5 +1,6 @@
 const DEFAULT_MAX_CATEGORIES = 12;
 const DEFAULT_MAX_PER_CATEGORY = 3;
+const EDITION_CACHE_VERSION = "images-v1";
 
 export default {
   async fetch(request, env, ctx) {
@@ -19,7 +20,7 @@ export default {
 
 async function handleEdition(request, env, ctx) {
   const cache = caches.default;
-  const cacheKey = new Request(new URL("/arc.edition.json", request.url), request);
+  const cacheKey = new Request(new URL(`/arc.edition.json?cache=${EDITION_CACHE_VERSION}`, request.url), request);
   const cached = await cache.match(cacheKey);
   if (cached) return cached;
 
@@ -109,6 +110,7 @@ function parseFeed(xml, category, source) {
       const summary = clean(readTag(block, "description") || readTag(block, "summary") || readTag(block, "content:encoded") || readTag(block, "content"));
       const dateText = readTag(block, "pubDate") || readTag(block, "published") || readTag(block, "updated") || readTag(block, "dc:date");
       const publishedAt = parseDate(dateText);
+      const imageUrl = readImageUrl(block);
       if (!headline) return null;
       return {
         id: stableId(`${category}|${source.name}|${url || headline}`),
@@ -119,6 +121,8 @@ function parseFeed(xml, category, source) {
         summary,
         url,
         published_at: publishedAt,
+        image_url: imageUrl,
+        image_alt: imageUrl ? headline : null,
       };
     })
     .filter(Boolean);
@@ -136,8 +140,8 @@ function toStory(item) {
     published_at: item.published_at,
     reading_minutes: 1,
     url: item.url,
-    image_url: null,
-    image_alt: null,
+    image_url: item.image_url,
+    image_alt: item.image_alt,
     topics: [],
     developing: false,
     sources: item.url ? [{ publisher: item.source, url: item.url }] : [],
@@ -185,6 +189,37 @@ function readTag(block, tag) {
 function readLinkHref(block) {
   const found = block.match(/<link\b[^>]*href=["']([^"']+)["'][^>]*>/i);
   return found ? clean(found[1]) : "";
+}
+
+function readImageUrl(block) {
+  const candidates = [
+    readTagAttr(block, "media:content", "url"),
+    readTagAttr(block, "media:thumbnail", "url"),
+    readTagAttr(block, "image", "url"),
+    readTagAttr(block, "itunes:image", "href"),
+    readTagAttr(block, "enclosure", "url", /type=["']image\//i),
+    readTagAttr(block, "img", "src"),
+  ].filter(Boolean);
+  const image = candidates.find((candidate) => !/rss-pixel|tracking|\/pixel[.?/]/i.test(candidate));
+  return image ? normalizeImageUrl(image) : null;
+}
+
+function readTagAttr(block, tag, attr, requiredPattern = null) {
+  const escaped = tag.replace(":", "\\:");
+  const tagRe = new RegExp(`<${escaped}\\b[^>]*>`, "gi");
+  for (const [rawTag] of block.matchAll(tagRe)) {
+    if (requiredPattern && !requiredPattern.test(rawTag)) continue;
+    const attrRe = new RegExp(`${attr}=["']([^"']+)["']`, "i");
+    const found = rawTag.match(attrRe);
+    if (found) return clean(found[1]);
+  }
+  return "";
+}
+
+function normalizeImageUrl(url) {
+  return clean(url)
+    .replace(/([?&])width=\d+/i, "$1width=1200")
+    .replace(/\/standard\/240\//i, "/standard/1024/");
 }
 
 function clean(value = "") {

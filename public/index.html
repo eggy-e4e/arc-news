@@ -36,6 +36,7 @@
     button, a { -webkit-tap-highlight-color: transparent; }
     a { color: inherit; text-decoration: none; }
     img { display: block; width: 100%; object-fit: cover; }
+    body:not(.arc-ready) #view-home .category-block { display: none; }
 
     .app {
       width: min(100%, 720px);
@@ -808,6 +809,7 @@
       function renderEdition(editionInput) {
         state.edition = normalizeEdition(editionInput);
         state.stories = allStories(state.edition);
+        document.body.classList.add('arc-ready');
         renderHome();
         renderExplore();
         renderSaved();
