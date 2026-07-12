@@ -1,0 +1,31 @@
+{
+  "generated_at": "2026-07-12T07:30:00+07:00",
+  "locale": "en-US",
+  "categories": [
+    {
+      "name": "World",
+      "stories": [
+        {
+          "id": "world-shortcut-test",
+          "headline": "Arc Shortcut test story",
+          "summary": "This confirms the Shortcut can open Arc with edition JSON.",
+          "briefing": "If this story appears in Arc, the Shortcut bridge is working. You can then replace this sample JSON with Apple Intelligence output from live RSS feeds.",
+          "publisher": "Arc Test",
+          "published_at": "2026-07-12T07:30:00+07:00",
+          "reading_minutes": 1,
+          "url": "https://example.com/arc-shortcut-test",
+          "image_url": null,
+          "image_alt": null,
+          "topics": ["Shortcut"],
+          "developing": false,
+          "sources": [
+            {
+              "publisher": "Arc Test",
+              "url": "https://example.com/arc-shortcut-test"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

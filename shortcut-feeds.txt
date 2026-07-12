@@ -1,0 +1,5 @@
+World | BBC News — World | https://feeds.bbci.co.uk/news/world/rss.xml
+Business | BBC News — Business | https://feeds.bbci.co.uk/news/business/rss.xml
+Technology | Ars Technica | https://feeds.arstechnica.com/arstechnica/index
+Science | NASA — News Releases | https://www.nasa.gov/news-release/feed/
+Vietnam | Google News — Vietnam | https://news.google.com/rss/headlines/section/geo/Vietnam?hl=en&gl=VN&ceid=VN%3Aen

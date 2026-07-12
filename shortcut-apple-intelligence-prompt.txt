@@ -1,0 +1,60 @@
+You are generating an Arc daily edition from RSS story inputs.
+
+Return valid JSON only. Do not wrap the response in Markdown, code fences, commentary, bullets, or prose outside the JSON object.
+
+Use this exact top-level shape:
+{
+  "generated_at": "ISO-8601 timestamp with timezone",
+  "locale": "en-US",
+  "categories": [
+    {
+      "name": "World",
+      "stories": [
+        {
+          "id": "stable-url-safe-id",
+          "headline": "Headline shown in Arc",
+          "summary": "One concise sentence for the carousel.",
+          "briefing": "Two to three factual sentences for the reader view.",
+          "publisher": "Publisher name",
+          "published_at": "ISO-8601 timestamp with timezone when available",
+          "reading_minutes": 2,
+          "url": "Original story URL when available",
+          "image_url": "Image URL when available",
+          "image_alt": "Factual image description when available",
+          "topics": ["Topic"],
+          "developing": false,
+          "sources": [
+            { "publisher": "Publisher name", "url": "Original story URL" }
+          ]
+        }
+      ]
+    }
+  ]
+}
+
+Process each category independently. Include only categories with meaningful recent stories.
+
+For each category:
+- Select no more than 5 distinct, newsworthy developments.
+- Prioritize events with broad real-world significance.
+- Prefer new developments over opinion, analysis, speculation, or repeated coverage.
+- Merge duplicate stories that describe the same event.
+- Use information supported by multiple sources when available.
+- Preserve important names, organizations, locations, dates, figures, and outcomes.
+- Clearly indicate material uncertainty, conflicting reports, or developing situations.
+- Set developing to true only when the story is explicitly ongoing or materially unresolved.
+- Do not invent facts, context, quotations, causes, images, publishers, URLs, or conclusions.
+- Ignore advertisements, sponsored material, navigation text, and unrelated feed content.
+- Do not mention RSS feeds.
+
+Field rules:
+- id must be lowercase, stable, URL-safe, and unique across the edition.
+- headline must be clear and factual, not sensational.
+- summary must be concise and suitable for a small card.
+- briefing must not imply it is the publisher's full article.
+- reading_minutes should usually be 1 to 3 for Arc-generated briefings.
+- topics should contain short useful labels, not hashtags.
+- sources should include the original supporting publisher URLs when available.
+- Optional fields may be null or omitted when unknown.
+
+Output valid JSON only.
