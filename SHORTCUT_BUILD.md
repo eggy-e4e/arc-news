@@ -45,6 +45,40 @@ Open Arc Briefing
 
 ## Mac-Local Actions
 
+### 1. Core Preview: Scrape, Build Edition, Open Arc
+
+This no-AI core preview is working now. It proves:
+
+```text
+local RSS scrape -> parsed Arc edition JSON -> encoded Arc URL -> hosted Arc reader
+```
+
+Action: `Run Shell Script`
+
+Shell:
+
+```text
+/bin/zsh
+```
+
+Input:
+
+```text
+None
+```
+
+Script:
+
+```sh
+python3 /Users/hoanghuuquoc/Downloads/arc-handoff-package/scripts/arc_open_core.py
+```
+
+This prints exactly one URL to stdout and opens Arc. The current preview edition is intentionally compact: 3 categories, 2 stories each.
+
+## Apple Intelligence Version
+
+Once the core preview is confirmed, replace the basic edition builder with Apple Intelligence:
+
 ### 1. Scrape RSS Locally
 
 Action: `Run Shell Script`

@@ -23,7 +23,7 @@ def main() -> int:
     parsed = json.loads(raw)
     compact = json.dumps(parsed, separators=(",", ":"), ensure_ascii=False)
     separator = "&" if "?" in args.arc_url else "?"
-    print(f"{args.arc_url}{separator}edition={urllib.parse.quote(compact)}")
+    print(f"{args.arc_url}{separator}edition={urllib.parse.quote(compact, safe='')}")
     return 0
 
 
