@@ -1,0 +1,1051 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f4f1ea" />
+  <title>Arc — Personal News Feed</title>
+  <style>
+    :root {
+      --paper: #f4f1ea;
+      --paper-2: #ebe7de;
+      --ink: #171714;
+      --muted: #6f6c64;
+      --rule: rgba(23, 23, 20, .14);
+      --accent: #aa3f2f;
+      --card: rgba(255,255,255,.48);
+      --glass: rgba(255,255,255,.56);
+      --glass-border: rgba(255,255,255,.68);
+      --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+      --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { background: var(--paper); color: var(--ink); }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 92% -10%, rgba(170,63,47,.08), transparent 26rem),
+        var(--paper);
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    button, a { -webkit-tap-highlight-color: transparent; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; width: 100%; object-fit: cover; }
+
+    .app {
+      width: min(100%, 720px);
+      margin: 0 auto;
+      padding: env(safe-area-inset-top) 18px calc(92px + env(safe-area-inset-bottom));
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      margin: 0 -18px;
+      padding: 12px 18px 10px;
+      backdrop-filter: blur(18px) saturate(130%);
+      -webkit-backdrop-filter: blur(18px) saturate(130%);
+      background: rgba(244, 241, 234, .68);
+      border-bottom: 1px solid transparent;
+      transition: border-color .2s ease, box-shadow .2s ease;
+    }
+
+    .topbar.scrolled {
+      border-bottom-color: var(--rule);
+      box-shadow: 0 8px 22px rgba(23,23,20,.035);
+    }
+
+    .brand-row { display: flex; align-items: center; justify-content: space-between; }
+    .brand {
+      font: 800 30px/1 var(--serif);
+      letter-spacing: -.055em;
+    }
+    .brand em { font-weight: 400; }
+
+    .icon-btn {
+      width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--rule);
+      display: grid; place-items: center; background: rgba(255,255,255,.35); color: var(--ink);
+    }
+    .icon-btn svg { width: 20px; height: 20px; }
+
+    .date-panel {
+      position: relative;
+      overflow: hidden;
+      margin-top: 13px;
+      padding: 15px 16px 14px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      align-items: end;
+      border: 1px solid var(--glass-border);
+      border-radius: 19px;
+      background: linear-gradient(135deg, rgba(255,255,255,.72), rgba(255,255,255,.36));
+      box-shadow: 0 10px 28px rgba(35,31,26,.06), inset 0 1px 0 rgba(255,255,255,.72);
+      backdrop-filter: blur(20px) saturate(135%);
+      -webkit-backdrop-filter: blur(20px) saturate(135%);
+    }
+    .date-panel::before {
+      content: "";
+      position: absolute;
+      width: 150px; height: 150px;
+      top: -90px; right: -38px;
+      border-radius: 50%;
+      background: rgba(170,63,47,.11);
+      filter: blur(2px);
+      pointer-events: none;
+    }
+    .edition-label {
+      position: relative;
+      z-index: 1;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+    .date-primary {
+      position: relative;
+      z-index: 1;
+      margin-top: 4px;
+      font: 700 23px/1.05 var(--serif);
+      letter-spacing: -.025em;
+    }
+    .date-primary em { font-weight: 400; }
+    .date-secondary {
+      position: relative;
+      z-index: 1;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: .04em;
+    }
+    .clock {
+      position: relative;
+      z-index: 1;
+      min-width: 78px;
+      text-align: right;
+      font: 750 25px/1 var(--serif);
+      letter-spacing: -.035em;
+      font-variant-numeric: tabular-nums;
+    }
+    .clock-period {
+      margin-top: 5px;
+      font: 750 9px/1 var(--sans);
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .topics {
+      display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none;
+      margin: 18px -18px 24px; padding: 0 18px;
+    }
+    .topics::-webkit-scrollbar { display: none; }
+    .topic {
+      white-space: nowrap; border: 1px solid var(--rule); background: transparent;
+      padding: 9px 13px; border-radius: 999px; font: 650 13px/1 var(--sans); color: var(--muted);
+    }
+    .topic.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+    .section-kicker {
+      display: flex; align-items: center; gap: 10px; margin: 0 0 12px;
+      font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase;
+    }
+    .section-kicker::after { content: ""; height: 1px; background: var(--rule); flex: 1; }
+
+    .lead {
+      position: relative; overflow: hidden; border-radius: 24px; min-height: 510px;
+      background: #2c3139;
+      box-shadow: 0 22px 50px rgba(23,23,20,.12);
+    }
+    .lead img { position: absolute; inset: 0; height: 100%; }
+    .lead::after {
+      content: ""; position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(12,14,16,.94) 0%, rgba(12,14,16,.42) 48%, rgba(12,14,16,.03) 78%);
+    }
+    .lead-copy { position: absolute; inset: auto 0 0; z-index: 2; padding: 24px 22px 22px; color: #fff; }
+    .eyebrow { font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; opacity: .84; }
+    .lead h1 {
+      margin: 10px 0 12px; max-width: 15ch;
+      font: 700 clamp(36px, 10vw, 58px)/.96 var(--serif); letter-spacing: -.045em;
+    }
+    .lead h1 em { font-weight: 400; }
+    .dek { max-width: 36rem; margin: 0; font: 400 16px/1.5 var(--serif); color: rgba(255,255,255,.82); }
+    .byline { margin-top: 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 12px; }
+    .byline strong { font-weight: 750; }
+    .read-time { color: rgba(255,255,255,.65); }
+
+    .feed { margin-top: 34px; }
+    .story {
+      display: grid; grid-template-columns: 1fr 112px; gap: 16px;
+      padding: 20px 0; border-top: 1px solid var(--rule);
+    }
+    .story:first-of-type { border-top: 0; padding-top: 0; }
+    .story h2 { margin: 6px 0 8px; font: 700 25px/1.05 var(--serif); letter-spacing: -.028em; }
+    .story h2 em { font-weight: 400; }
+    .story p { margin: 0; color: var(--muted); font: 400 14px/1.48 var(--serif); }
+    .story-meta { margin-top: 12px; display: flex; gap: 8px; align-items: center; font-size: 11px; color: var(--muted); }
+    .story-meta b { color: var(--ink); }
+    .thumb { aspect-ratio: 4 / 5; border-radius: 16px; overflow: hidden; background: var(--paper-2); }
+    .thumb img { height: 100%; }
+
+    .quote-card {
+      margin: 18px 0 30px; padding: 27px 24px 25px; border-radius: 22px;
+      background: var(--ink); color: var(--paper);
+    }
+    .quote-card blockquote { margin: 0; font: italic 400 29px/1.14 var(--serif); letter-spacing: -.025em; }
+    .quote-card footer { margin-top: 18px; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: rgba(244,241,234,.62); }
+
+    .bottom-nav {
+      position: fixed; z-index: 30; left: 50%; bottom: calc(10px + env(safe-area-inset-bottom)); transform: translateX(-50%);
+      width: min(calc(100% - 24px), 560px); height: 66px; padding: 8px;
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;
+      border: 1px solid rgba(23,23,20,.1); border-radius: 22px;
+      background: rgba(248,246,240,.72); box-shadow: 0 14px 40px rgba(23,23,20,.14), inset 0 1px 0 rgba(255,255,255,.72);
+      backdrop-filter: blur(22px) saturate(150%); -webkit-backdrop-filter: blur(22px) saturate(150%);
+    }
+    .nav-item { border: 0; background: transparent; border-radius: 15px; display: grid; place-items: center; color: var(--muted); }
+    .nav-item.active { background: var(--ink); color: var(--paper); }
+    .nav-item svg { width: 21px; height: 21px; }
+
+    .toast {
+      position: fixed; left: 50%; bottom: calc(88px + env(safe-area-inset-bottom)); transform: translate(-50%, 18px);
+      opacity: 0; pointer-events: none; transition: .25s ease; z-index: 40;
+      background: var(--ink); color: var(--paper); border-radius: 999px; padding: 11px 16px; font-size: 13px;
+    }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+
+    .view { display: none; animation: viewIn .28s ease both; }
+    .view.active { display: block; }
+    @keyframes viewIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+    .view-header { margin: 22px 0 24px; }
+    .view-header .eyebrow { color: var(--accent); }
+    .view-title { margin: 8px 0 7px; font: 700 42px/.98 var(--serif); letter-spacing: -.045em; }
+    .view-title em { font-weight: 400; }
+    .view-subtitle { margin: 0; max-width: 34rem; color: var(--muted); font: 400 15px/1.48 var(--serif); }
+
+    .glass-card {
+      border: 1px solid var(--glass-border);
+      background: linear-gradient(145deg, rgba(255,255,255,.68), rgba(255,255,255,.34));
+      box-shadow: 0 14px 34px rgba(35,31,26,.055), inset 0 1px 0 rgba(255,255,255,.76);
+      backdrop-filter: blur(20px) saturate(135%);
+      -webkit-backdrop-filter: blur(20px) saturate(135%);
+    }
+
+    .discover-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .discover-card { min-height: 180px; padding: 18px; border-radius: 22px; display: flex; flex-direction: column; justify-content: space-between; }
+    .discover-card.wide { grid-column: 1 / -1; min-height: 210px; }
+    .discover-index { font: 750 11px/1 var(--sans); letter-spacing: .13em; text-transform: uppercase; color: var(--accent); }
+    .discover-card h3 { margin: 28px 0 7px; max-width: 12ch; font: 700 26px/1.02 var(--serif); letter-spacing: -.035em; }
+    .discover-card h3 em { font-weight: 400; }
+    .discover-card p { margin: 0; color: var(--muted); font: 400 13px/1.42 var(--serif); }
+    .discover-foot { margin-top: 16px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--muted); }
+    .soft-arrow { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: rgba(23,23,20,.06); color: var(--ink); }
+
+    .saved-summary { padding: 18px; border-radius: 22px; display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+    .saved-count { font: 700 32px/1 var(--serif); letter-spacing: -.04em; }
+    .saved-count em { font-weight: 400; }
+    .saved-label { margin-top: 4px; color: var(--muted); font-size: 12px; }
+    .saved-filter { border: 0; border-radius: 999px; padding: 10px 13px; background: rgba(23,23,20,.07); font: 700 12px/1 var(--sans); color: var(--ink); }
+    .saved-item { display: grid; grid-template-columns: 72px 1fr auto; gap: 14px; align-items: center; padding: 15px 0; border-top: 1px solid var(--rule); }
+    .saved-item:first-of-type { border-top: 0; }
+    .saved-thumb { width: 72px; aspect-ratio: 1; padding:0; border:0; border-radius: 15px; overflow: hidden; background: var(--paper-2); }
+    .saved-thumb img { height: 100%; }
+    .saved-item h3 { margin: 0 0 5px; font: 700 18px/1.08 var(--serif); letter-spacing: -.02em; }
+    .saved-item p { margin: 0; color: var(--muted); font-size: 11px; }
+    .remove-save { width: 34px; height: 34px; border: 0; border-radius: 50%; background: transparent; color: var(--muted); display: grid; place-items: center; }
+
+    .profile-card { border-radius: 26px; padding: 22px; text-align: center; }
+    .avatar { width: 76px; height: 76px; margin: 0 auto 14px; border-radius: 50%; display: grid; place-items: center; background: var(--ink); color: var(--paper); font: italic 400 30px/1 var(--serif); box-shadow: 0 10px 28px rgba(23,23,20,.16); }
+    .profile-card h2 { margin: 0; font: 700 29px/1 var(--serif); letter-spacing: -.035em; }
+    .profile-card h2 em { font-weight: 400; }
+    .profile-card > p { margin: 7px 0 0; color: var(--muted); font: 400 13px/1.45 var(--serif); }
+    .profile-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 20px; }
+    .stat { padding: 13px 8px; border-radius: 16px; background: rgba(255,255,255,.42); }
+    .stat strong { display: block; font: 700 19px/1 var(--serif); }
+    .stat span { display: block; margin-top: 5px; color: var(--muted); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
+    .settings-list { margin-top: 20px; border-radius: 22px; overflow: hidden; }
+    .setting-row { width: 100%; border: 0; border-top: 1px solid var(--rule); background: transparent; padding: 16px 17px; display: flex; align-items: center; justify-content: space-between; text-align: left; color: var(--ink); }
+    .setting-row:first-child { border-top: 0; }
+    .setting-row strong { display: block; font-size: 13px; }
+    .setting-row small { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; }
+    .toggle { width: 42px; height: 25px; border-radius: 999px; padding: 3px; background: rgba(23,23,20,.15); transition: .2s ease; }
+    .toggle::after { content: ''; display: block; width: 19px; height: 19px; border-radius: 50%; background: white; box-shadow: 0 2px 8px rgba(23,23,20,.15); transition: .2s ease; }
+    .setting-row.on .toggle { background: var(--ink); }
+    .setting-row.on .toggle::after { transform: translateX(17px); }
+
+    .nav-item { position: relative; }
+    .nav-item::after { content: attr(data-label); position: absolute; bottom: 4px; font-size: 8px; font-weight: 750; letter-spacing: .03em; opacity: 0; transform: translateY(2px); transition: .18s ease; }
+    .nav-item.active svg { transform: translateY(-5px) scale(.92); }
+    .nav-item.active::after { opacity: 1; transform: none; }
+    .nav-item svg { transition: .18s ease; }
+
+
+    .home-intro { margin: 22px 0 28px; }
+    .home-intro h1 { margin: 7px 0 8px; font: 700 40px/.98 var(--serif); letter-spacing: -.045em; }
+    .home-intro h1 em { font-weight: 400; }
+    .home-intro p { margin: 0; max-width: 34rem; color: var(--muted); font: 400 15px/1.55 var(--serif); }
+
+    .category-block { margin: 0 0 34px; }
+    .category-head { display:flex; align-items:end; justify-content:space-between; gap:16px; margin-bottom:13px; }
+    .category-label { color:var(--accent); font-size:10px; font-weight:800; letter-spacing:.16em; text-transform:uppercase; }
+    .category-title { margin:4px 0 0; font:700 27px/1 var(--serif); letter-spacing:-.035em; }
+    .category-title em { font-weight:400; }
+    .category-count { color:var(--muted); font-size:11px; white-space:nowrap; }
+    .carousel { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(270px, 84%); gap:13px; overflow-x:auto; overscroll-behavior-inline:contain; scroll-snap-type:x mandatory; scrollbar-width:none; margin:0 -18px; padding:2px 18px 12px; }
+    .carousel::-webkit-scrollbar { display:none; }
+    .carousel-card { scroll-snap-align:start; border:0; padding:0; text-align:left; color:inherit; border-radius:23px; overflow:hidden; background:rgba(255,255,255,.42); box-shadow:0 13px 30px rgba(35,31,26,.055), inset 0 1px 0 rgba(255,255,255,.75); border:1px solid rgba(255,255,255,.68); backdrop-filter:blur(18px) saturate(130%); -webkit-backdrop-filter:blur(18px) saturate(130%); transition:transform .22s ease, box-shadow .22s ease; }
+    .carousel-card:active { transform:scale(.985); }
+    .carousel-media { aspect-ratio:16/10; overflow:hidden; background:var(--paper-2); }
+    .carousel-media img { height:100%; transition:transform .5s ease; }
+    .image-fallback { height:100%; display:grid; place-items:end start; padding:18px; color:rgba(23,23,20,.58); font:800 11px/1 var(--sans); letter-spacing:.16em; text-transform:uppercase; background:linear-gradient(145deg, rgba(235,231,222,.95), rgba(255,255,255,.38)); }
+    .carousel-card:hover .carousel-media img { transform:scale(1.025); }
+    .carousel-copy { padding:16px 17px 17px; }
+    .carousel-copy .eyebrow { color:var(--accent); opacity:1; }
+    .carousel-copy h3 { margin:7px 0 8px; font:700 25px/1.03 var(--serif); letter-spacing:-.032em; }
+    .carousel-copy h3 em { font-weight:400; }
+    .carousel-copy p { margin:0; min-height:3.1em; color:var(--muted); font:400 14px/1.48 var(--serif); }
+    .carousel-meta { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:14px; color:var(--muted); font-size:11px; }
+    .carousel-meta strong { color:var(--ink); }
+    .carousel-dots { display:flex; gap:5px; justify-content:center; margin-top:3px; }
+    .carousel-dots span { width:5px; height:5px; border-radius:50%; background:rgba(23,23,20,.18); }
+    .carousel-dots span:first-child { width:17px; border-radius:99px; background:var(--ink); }
+
+    .reader { position:fixed; inset:0; z-index:100; display:none; background:rgba(244,241,234,.94); backdrop-filter:blur(24px) saturate(130%); -webkit-backdrop-filter:blur(24px) saturate(130%); overflow:hidden; overscroll-behavior:none; }
+    .reader.open { display:block; animation:readerIn .28s ease both; }
+    @keyframes readerIn { from { opacity:0; } to { opacity:1; } }
+    .reader-shell { width:min(100%, 720px); height:100%; margin:0 auto; padding:0 20px calc(116px + env(safe-area-inset-bottom)); overflow-y:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+    .reader-shell::-webkit-scrollbar { display:none; }
+    .reader-top { position:sticky; top:0; z-index:102; display:grid; grid-template-columns:44px minmax(0,1fr) 44px; align-items:center; margin:0 -20px 18px; padding:calc(env(safe-area-inset-top) + 12px) 20px 13px; background:rgba(244,241,234,.72); backdrop-filter:blur(22px) saturate(125%); -webkit-backdrop-filter:blur(22px) saturate(125%); box-shadow:0 1px 0 rgba(23,23,20,.045); }
+    .reader-close, .reader-save { width:44px; height:44px; padding:0; border:0; border-radius:0; background:transparent; display:grid; place-items:center; color:var(--ink); opacity:.58; transition:opacity .18s ease, transform .18s ease; }
+    .reader-close:active, .reader-save:active { opacity:.9; transform:scale(.92); }
+    .reader-close svg, .reader-save svg { width:23px; height:23px; stroke-width:1.55; }
+    .reader-meta { min-width:0; text-align:center; display:grid; gap:5px; justify-items:center; }
+    .reader-position { max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:10px; font-weight:750; letter-spacing:.18em; text-transform:uppercase; color:rgba(23,23,20,.58); }
+    .reader-counter { font-size:9px; font-weight:520; letter-spacing:.12em; color:rgba(23,23,20,.36); font-variant-numeric:tabular-nums; }
+    .reader-hero { border-radius:27px; overflow:hidden; aspect-ratio:16/10; box-shadow:0 18px 45px rgba(23,23,20,.1); background:var(--paper-2); }
+    .reader-hero.is-hidden { display:none; }
+    .reader-hero img { height:100%; }
+    .reader-header { padding:24px 3px 5px; }
+    .reader-category { color:var(--accent); font-size:10px; font-weight:800; letter-spacing:.16em; text-transform:uppercase; }
+    .reader-title { margin:9px 0 13px; font:700 clamp(39px, 10vw, 57px)/.95 var(--serif); letter-spacing:-.05em; }
+    .reader-title em { font-weight:400; }
+    .reader-dek { margin:0; color:#4f4d47; font:400 18px/1.52 var(--serif); }
+    .reader-byline { display:flex; justify-content:space-between; gap:12px; margin:21px 0 28px; padding-top:17px; border-top:1px solid var(--rule); font-size:12px; color:var(--muted); }
+    .reader-byline strong { color:var(--ink); }
+    .article-body { max-width:38rem; margin:0 auto; }
+    .article-body p { margin:0 0 1.4em; font:400 19px/1.72 var(--serif); letter-spacing:-.006em; }
+    .article-body p:first-child::first-letter { float:left; font:700 72px/.8 var(--serif); padding:10px 9px 0 0; color:var(--accent); }
+    .article-body h2 { margin:2.1em 0 .65em; font:700 31px/1.05 var(--serif); letter-spacing:-.035em; }
+    .article-body blockquote { margin:2em 0; padding:0 0 0 20px; border-left:2px solid var(--accent); font:italic 400 27px/1.35 var(--serif); color:#3e3c37; }
+    .reader-sources { max-width:38rem; margin:24px auto 0; padding-top:18px; border-top:1px solid var(--rule); }
+    .reader-sources h2 { margin:0 0 10px; font:800 10px/1 var(--sans); letter-spacing:.16em; text-transform:uppercase; color:var(--accent); }
+    .reader-sources a { display:block; padding:9px 0; color:var(--muted); font-size:13px; border-top:1px solid rgba(23,23,20,.06); }
+    .reader-sources a:first-of-type { border-top:0; }
+    .reader-actions { max-width:38rem; margin:20px auto 0; }
+    .original-link { display:inline-flex; align-items:center; min-height:44px; padding:0 16px; border-radius:999px; background:var(--ink); color:var(--paper); font:750 13px/1 var(--sans); }
+    .is-hidden { display:none !important; }
+    .reader-controls { position:fixed; left:50%; bottom:calc(12px + env(safe-area-inset-bottom)); transform:translateX(-50%); width:min(calc(100% - 28px), 520px); min-height:72px; padding:10px 11px 12px; display:grid; grid-template-columns:38px minmax(0,1fr) 38px; align-items:center; gap:8px; border-radius:22px; background:rgba(248,246,240,.42); box-shadow:0 12px 32px rgba(23,23,20,.10), inset 0 1px 0 rgba(255,255,255,.62); backdrop-filter:blur(26px) saturate(130%); -webkit-backdrop-filter:blur(26px) saturate(130%); z-index:103; overflow:hidden; }
+    .control-copy { min-width:0; text-align:left; }
+    .control-current, .control-next { display:block; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+    .control-current { font:750 14px/1.25 var(--sans); letter-spacing:-.018em; color:var(--ink); }
+    .control-next { margin-top:4px; font:italic 300 12px/1.25 var(--serif); color:var(--muted); letter-spacing:-.005em; }
+    .control-progress-track { position:absolute; left:12px; right:12px; bottom:5px; height:2px; border-radius:999px; background:rgba(23,23,20,.08); overflow:hidden; pointer-events:none; }
+    .control-progress-fill { width:0%; height:100%; border-radius:inherit; background:var(--accent); transition:width .12s linear; }
+    .reader-nav { width:38px; height:38px; padding:0; border:0; background:none; color:var(--ink); display:grid; place-items:center; opacity:.82; transition:opacity .18s ease, transform .18s ease; }
+    .reader-nav svg { width:22px; height:22px; }
+    .reader-nav:active { opacity:1; transform:scale(.9); }
+
+    @media (min-width: 700px) {
+      .app { padding-left: 24px; padding-right: 24px; }
+      .topbar { margin-left: -24px; margin-right: -24px; padding-left: 24px; padding-right: 24px; }
+      .topics { margin-left: -24px; margin-right: -24px; padding-left: 24px; padding-right: 24px; }
+      .lead { min-height: 620px; }
+      .story { grid-template-columns: 1fr 160px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar" id="topbar">
+      <div class="brand-row">
+        <a class="brand" href="#" aria-label="Arc home">A<em>r</em>c.</a>
+        <button class="icon-btn" id="searchButton" aria-label="Search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6.7"/><path d="m16 16 4 4"/></svg>
+        </button>
+      </div>
+      <section class="date-panel" aria-label="Current edition date and time">
+        <div>
+          <div class="edition-label" id="editionLabel">Morning briefing</div>
+          <div class="date-primary" id="datePrimary">Sunday, <em>July 12</em></div>
+          <div class="date-secondary" id="dateSecondary">Your personal edition · Ho Chi Minh City</div>
+        </div>
+        <div>
+          <div class="clock" id="liveClock">07:00</div>
+          <div class="clock-period" id="clockPeriod">Local time</div>
+        </div>
+      </section>
+    </header>
+
+    <section class="view active" id="view-home" data-view="home">
+      <header class="home-intro">
+        <div class="eyebrow" style="color:var(--accent)">For you</div>
+        <h1>A softer way to <em>catch up.</em></h1>
+        <p>Thoughtful reporting, arranged by mood and subject. Swipe gently through each collection, then settle into a distraction-free read.</p>
+      </header>
+
+      <section class="category-block" data-category="World">
+        <div class="category-head"><div><div class="category-label">World</div><h2 class="category-title">The wider <em>view.</em></h2></div><div class="category-count">3 stories</div></div>
+        <div class="carousel">
+          <button class="carousel-card" data-article="0"><div class="carousel-media"><img src="https://images.unsplash.com/photo-1521295121783-8a321d551ad2?auto=format&fit=crop&w=1200&q=88" alt="Mountain landscape in soft morning light"></div><div class="carousel-copy"><div class="eyebrow">Climate · Field notes</div><h3>The villages learning to <em>move with water.</em></h3><p>Along a changing river, adaptation looks less like surrender and more like patient design.</p><div class="carousel-meta"><span><strong>Mara Chen</strong> · 8 min</span><span>Read →</span></div></div></button>
+          <button class="carousel-card" data-article="1"><div class="carousel-media"><img src="https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?auto=format&fit=crop&w=1200&q=88" alt="Dense city skyline at dusk"></div><div class="carousel-copy"><div class="eyebrow">Cities · Report</div><h3>What a city owes its <em>quietest streets.</em></h3><p>Small public changes are giving neighborhood life room to return.</p><div class="carousel-meta"><span><strong>Leo Martin</strong> · 6 min</span><span>Read →</span></div></div></button>
+          <button class="carousel-card" data-article="2"><div class="carousel-media"><img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=88" alt="Open landscape beneath a pale sky"></div><div class="carousel-copy"><div class="eyebrow">Economy · Analysis</div><h3>The new value of <em>staying local.</em></h3><p>Communities are discovering that resilience often begins within walking distance.</p><div class="carousel-meta"><span><strong>Amira Sol</strong> · 7 min</span><span>Read →</span></div></div></button>
+        </div><div class="carousel-dots"><span></span><span></span><span></span></div>
+      </section>
+
+      <section class="category-block" data-category="Culture">
+        <div class="category-head"><div><div class="category-label">Culture</div><h2 class="category-title">Life, noticed <em>closely.</em></h2></div><div class="category-count">3 stories</div></div>
+        <div class="carousel">
+          <button class="carousel-card" data-article="3"><div class="carousel-media"><img src="https://images.unsplash.com/photo-1455885666463-4e7c24cd64f8?auto=format&fit=crop&w=1200&q=88" alt="Open book in warm light"></div><div class="carousel-copy"><div class="eyebrow">Books · Essay</div><h3>The quiet return of <em>reading in public.</em></h3><p>Why visible concentration now feels both intimate and gently rebellious.</p><div class="carousel-meta"><span><strong>Imani West</strong> · 5 min</span><span>Read →</span></div></div></button>
+          <button class="carousel-card" data-article="4"><div class="carousel-media"><img src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=88" alt="People gathered around a softly lit table"></div><div class="carousel-copy"><div class="eyebrow">Rituals · Long read</div><h3>Why dinner is becoming <em>an unhurried event.</em></h3><p>A renewed appetite for meals that have no agenda beyond being together.</p><div class="carousel-meta"><span><strong>Sofia Reyes</strong> · 9 min</span><span>Read →</span></div></div></button>
+          <button class="carousel-card" data-article="5"><div class="carousel-media"><img src="https://images.unsplash.com/photo-1499781350541-7783f6c6a0c8?auto=format&fit=crop&w=1200&q=88" alt="Art gallery wall with framed work"></div><div class="carousel-copy"><div class="eyebrow">Art · Perspective</div><h3>The gallery show built around <em>unfinished things.</em></h3><p>Works in progress invite viewers to see uncertainty as a form of honesty.</p><div class="carousel-meta"><span><strong>Noah Bell</strong> · 6 min</span><span>Read →</span></div></div></button>
+        </div><div class="carousel-dots"><span></span><span></span><span></span></div>
+      </section>
+
+      <section class="category-block" data-category="Ideas">
+        <div class="category-head"><div><div class="category-label">Ideas</div><h2 class="category-title">For a calmer <em>mind.</em></h2></div><div class="category-count">3 stories</div></div>
+        <div class="carousel">
+          <button class="carousel-card" data-article="6"><div class="carousel-media"><img src="https://images.unsplash.com/photo-1496171367470-9ed9a91ea931?auto=format&fit=crop&w=1200&q=88" alt="Minimal desk and laptop"></div><div class="carousel-copy"><div class="eyebrow">Technology · Design</div><h3>The next interface may be <em>almost invisible.</em></h3><p>Tools that appear only when useful could make digital life feel less demanding.</p><div class="carousel-meta"><span><strong>Elian Park</strong> · 7 min</span><span>Read →</span></div></div></button>
+          <button class="carousel-card" data-article="7"><div class="carousel-media"><img src="https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=1200&q=88" alt="Quiet modern architectural passage"></div><div class="carousel-copy"><div class="eyebrow">Design · Places</div><h3>A station designed around <em>the five-minute pause.</em></h3><p>What changes when public space supports waiting instead of rushing?</p><div class="carousel-meta"><span><strong>Leo Martin</strong> · 7 min</span><span>Read →</span></div></div></button>
+          <button class="carousel-card" data-article="8"><div class="carousel-media"><img src="https://images.unsplash.com/photo-1497250681960-ef046c08a56e?auto=format&fit=crop&w=1200&q=88" alt="Green leaves in soft daylight"></div><div class="carousel-copy"><div class="eyebrow">Environment · Essay</div><h3>The city is learning to <em>breathe again.</em></h3><p>Shade, soil, and living systems are quietly redefining urban comfort.</p><div class="carousel-meta"><span><strong>Mara Chen</strong> · 8 min</span><span>Read →</span></div></div></button>
+        </div><div class="carousel-dots"><span></span><span></span><span></span></div>
+      </section>
+    </section>
+
+    <section class="view" id="view-explore" data-view="explore">
+      <header class="view-header">
+        <div class="eyebrow">Explore</div>
+        <h1 class="view-title">Follow your <em>curiosity.</em></h1>
+        <p class="view-subtitle">A quiet collection of themes selected to broaden today’s reading without overwhelming it.</p>
+      </header>
+      <div class="discover-grid">
+        <article class="discover-card wide glass-card">
+          <div class="discover-index">Editor’s path · 01</div>
+          <div>
+            <h3>The architecture of <em>attention.</em></h3>
+            <p>Four considered stories about spaces, tools, and rituals that protect focus.</p>
+          </div>
+          <div class="discover-foot"><span>24 minutes · 4 stories</span><span class="soft-arrow">→</span></div>
+        </article>
+        <article class="discover-card glass-card">
+          <div class="discover-index">Theme · 02</div>
+          <div><h3>Gentler <em>technology.</em></h3><p>Interfaces designed to ask less of us.</p></div>
+          <div class="discover-foot"><span>7 stories</span><span class="soft-arrow">→</span></div>
+        </article>
+        <article class="discover-card glass-card">
+          <div class="discover-index">Theme · 03</div>
+          <div><h3>Life in <em>small rooms.</em></h3><p>How compact spaces change daily rituals.</p></div>
+          <div class="discover-foot"><span>5 stories</span><span class="soft-arrow">→</span></div>
+        </article>
+        <article class="discover-card wide glass-card">
+          <div class="discover-index">Slow read · 04</div>
+          <div><h3>What we keep when everything else becomes <em>temporary.</em></h3><p>Essays on memory, objects, and the emotional weight of permanence.</p></div>
+          <div class="discover-foot"><span>32 minutes · Weekend collection</span><span class="soft-arrow">→</span></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="view" id="view-saved" data-view="saved">
+      <header class="view-header">
+        <div class="eyebrow">Saved</div>
+        <h1 class="view-title">Your reading, <em>kept softly.</em></h1>
+        <p class="view-subtitle">A calm shelf for stories worth returning to when you have more time.</p>
+      </header>
+      <div class="saved-summary glass-card">
+        <div><div class="saved-count">12 <em>stories</em></div><div class="saved-label">About 1 hour 18 minutes of reading</div></div>
+        <button class="saved-filter" id="savedFilter">Recent first</button>
+      </div>
+      <div id="savedList">
+        <article class="saved-item">
+          <div class="saved-thumb"><img src="https://images.unsplash.com/photo-1496171367470-9ed9a91ea931?auto=format&fit=crop&w=400&q=82" alt="Minimal desk"></div>
+          <div><h3>The next interface may be invisible</h3><p>Technology · 5 min</p></div>
+          <button class="remove-save" aria-label="Remove saved story">×</button>
+        </article>
+        <article class="saved-item">
+          <div class="saved-thumb"><img src="https://images.unsplash.com/photo-1455885666463-4e7c24cd64f8?auto=format&fit=crop&w=400&q=82" alt="Open book"></div>
+          <div><h3>The quiet return of reading in public</h3><p>Culture · 4 min</p></div>
+          <button class="remove-save" aria-label="Remove saved story">×</button>
+        </article>
+        <article class="saved-item">
+          <div class="saved-thumb"><img src="https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=400&q=82" alt="Modern architecture"></div>
+          <div><h3>A station designed around pause</h3><p>Cities · 7 min</p></div>
+          <button class="remove-save" aria-label="Remove saved story">×</button>
+        </article>
+      </div>
+    </section>
+
+    <section class="view" id="view-profile" data-view="profile">
+      <header class="view-header">
+        <div class="eyebrow">Profile</div>
+        <h1 class="view-title">A feed shaped <em>around you.</em></h1>
+        <p class="view-subtitle">Small controls for pace, tone, and the kinds of stories that enter your day.</p>
+      </header>
+      <section class="profile-card glass-card">
+        <div class="avatar">A</div>
+        <h2>Your <em>Arc</em></h2>
+        <p>Reading with intention since July 2026.</p>
+        <div class="profile-stats">
+          <div class="stat"><strong>24</strong><span>Read</span></div>
+          <div class="stat"><strong>12</strong><span>Saved</span></div>
+          <div class="stat"><strong>7</strong><span>Topics</span></div>
+        </div>
+      </section>
+      <section class="settings-list glass-card">
+        <button class="setting-row on"><span><strong>Gentle briefing</strong><small>Fewer, more considered stories</small></span><span class="toggle" aria-hidden="true"></span></button>
+        <button class="setting-row on"><span><strong>Local context</strong><small>Include stories near Ho Chi Minh City</small></span><span class="toggle" aria-hidden="true"></span></button>
+        <button class="setting-row"><span><strong>Evening mode</strong><small>Dim imagery after sunset</small></span><span class="toggle" aria-hidden="true"></span></button>
+      </section>
+    </section>
+
+  </main>
+
+  <nav class="bottom-nav" aria-label="Primary navigation">
+    <button class="nav-item active" aria-label="Home" data-view-target="home" data-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m4 10 8-6 8 6v9a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1z"/></svg></button>
+    <button class="nav-item" aria-label="Explore" data-view-target="explore" data-label="Explore"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg></button>
+    <button class="nav-item" aria-label="Saved" data-view-target="saved" data-label="Saved"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 4h12v17l-6-4-6 4z"/></svg></button>
+    <button class="nav-item" aria-label="Profile" data-view-target="profile" data-label="Profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c.8-4 3.2-6 7-6s6.2 2 7 6"/></svg></button>
+  </nav>
+
+  <div class="toast" id="toast" role="status" aria-live="polite">Search prototype</div>
+  <section class="reader" id="reader" aria-hidden="true">
+    <div class="reader-shell">
+      <div class="reader-top">
+        <button class="reader-close" id="readerClose" aria-label="Close article"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/><path d="M9 12h10"/></svg></button>
+        <div class="reader-meta"><div class="reader-position" id="readerPosition">World · Climate</div><div class="reader-counter" id="readerCounter">1 / 9</div></div>
+        <button class="reader-save" id="readerSave" aria-label="Save article" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.75h12a1.25 1.25 0 0 1 1.25 1.25v15.25L12 16l-7.25 4.25V5A1.25 1.25 0 0 1 6 3.75Z"/></svg></button>
+      </div>
+      <div class="reader-hero"><img id="readerImage" src="" alt=""></div>
+      <header class="reader-header"><div class="reader-category" id="readerCategory"></div><h1 class="reader-title" id="readerTitle"></h1><p class="reader-dek" id="readerDek"></p><div class="reader-byline"><span>By <strong id="readerAuthor"></strong></span><span id="readerTime"></span></div></header>
+      <article class="article-body" id="readerBody"></article>
+      <section class="reader-sources is-hidden" id="readerSourcesWrap">
+        <h2>Sources</h2>
+        <div id="readerSources"></div>
+      </section>
+      <div class="reader-actions is-hidden" id="readerActions">
+        <a class="original-link" id="readerOriginal" href="#" target="_blank" rel="noopener">Open original</a>
+      </div>
+    </div>
+    <div class="reader-controls" aria-label="Article navigation">
+      <button class="reader-nav" id="readerPrev" aria-label="Previous article"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
+      <div class="control-copy" aria-live="polite">
+        <span class="control-current" id="controlCurrentHeadline"></span>
+        <span class="control-next" id="controlNextHeadline"></span>
+      </div>
+      <button class="reader-nav" id="readerNext" aria-label="Next article"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+      <div class="control-progress-track" aria-hidden="true"><div class="control-progress-fill" id="controlProgress"></div></div>
+    </div>
+  </section>
+
+
+  <script>
+    (() => {
+      const SAVED_KEY = 'arc.savedStories.v1';
+      const PREFS_KEY = 'arc.preferences.v1';
+      const fallbackEdition = {
+        generated_at: new Date().toISOString(),
+        locale: 'en-US',
+        categories: [
+          { name: 'World', stories: [
+            { id: 'world-villages-water', headline: 'The villages learning to move with water.', summary: 'Along a changing river, adaptation looks less like surrender and more like patient design.', briefing: 'Communities near a changing river are adapting through many small local decisions instead of one dramatic project. Homes, paths, gardens, and storage are being redesigned around water that arrives earlier and leaves later.', publisher: 'Arc Demo', published_at: new Date(Date.now() - 42 * 60 * 1000).toISOString(), reading_minutes: 2, image_url: 'https://images.unsplash.com/photo-1521295121783-8a321d551ad2?auto=format&fit=crop&w=1600&q=90', image_alt: 'Mountain landscape in soft morning light', topics: ['Climate', 'Adaptation'], developing: false, sources: [{ publisher: 'Arc Demo', url: 'https://example.com/world-villages-water' }] },
+            { id: 'world-quiet-streets', headline: 'What a city owes its quietest streets.', summary: 'Small public changes are giving neighborhood life room to return.', briefing: 'City planners are reassessing quiet neighborhood streets as social spaces rather than simple corridors. Benches, trees, narrower lanes, and safer crossings can change how long people feel welcome to remain.', publisher: 'Arc Demo', published_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), reading_minutes: 2, image_url: 'https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?auto=format&fit=crop&w=1600&q=90', image_alt: 'Dense city skyline at dusk', topics: ['Cities'], sources: [{ publisher: 'Arc Demo', url: 'https://example.com/world-quiet-streets' }] }
+          ]},
+          { name: 'Culture', stories: [
+            { id: 'culture-reading-public', headline: 'The quiet return of reading in public.', summary: 'Visible concentration now feels both intimate and gently rebellious.', briefing: 'Informal reading groups are bringing books back into cafes, parks, trains, and neighborhood bars. The appeal is less about performance than the shared permission to be quiet in public.', publisher: 'Arc Demo', published_at: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), reading_minutes: 2, image_url: 'https://images.unsplash.com/photo-1455885666463-4e7c24cd64f8?auto=format&fit=crop&w=1600&q=90', image_alt: 'Open book in warm light', topics: ['Books'], sources: [{ publisher: 'Arc Demo', url: 'https://example.com/culture-reading-public' }] },
+            { id: 'culture-unhurried-dinner', headline: 'Why dinner is becoming an unhurried event.', summary: 'A renewed appetite for meals that have no agenda beyond being together.', briefing: 'Hosts are moving away from polished entertaining toward longer, more participatory meals. The renewed ritual values duration, shared work, and conversation that has time to find its shape.', publisher: 'Arc Demo', published_at: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), reading_minutes: 3, image_url: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1600&q=90', image_alt: 'People gathered around a softly lit table', topics: ['Rituals'], sources: [{ publisher: 'Arc Demo', url: 'https://example.com/culture-unhurried-dinner' }] }
+          ]},
+          { name: 'Technology', stories: [
+            { id: 'technology-invisible-interface', headline: 'The next interface may be almost invisible.', summary: 'Tools that appear only when useful could make digital life feel less demanding.', briefing: 'A quieter design approach is forming around interfaces that recede until needed. Ambient signals, restrained screens, and context-aware controls may reduce the pressure created by constant digital surfaces.', publisher: 'Arc Demo', published_at: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(), reading_minutes: 2, image_url: 'https://images.unsplash.com/photo-1496171367470-9ed9a91ea931?auto=format&fit=crop&w=1600&q=90', image_alt: 'Minimal desk and laptop', topics: ['Design', 'AI'], developing: true, sources: [{ publisher: 'Arc Demo', url: 'https://example.com/technology-invisible-interface' }] }
+          ]}
+        ]
+      };
+
+      const state = { edition: null, stories: [], currentIndex: 0, savedSort: 'recent', loadedByInjection: false };
+      const $ = (id) => document.getElementById(id);
+      const topbar = $('topbar');
+      const toast = $('toast');
+      const reader = $('reader');
+      const readerShell = reader.querySelector('.reader-shell');
+
+      function clean(value) {
+        if (value === null || value === undefined) return '';
+        return String(value).trim();
+      }
+
+      function escapeHtml(value) {
+        return clean(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+      }
+
+      function readJson(key, fallback) {
+        try {
+          const raw = localStorage.getItem(key);
+          return raw ? JSON.parse(raw) : fallback;
+        } catch {
+          return fallback;
+        }
+      }
+
+      function writeJson(key, value) {
+        localStorage.setItem(key, JSON.stringify(value));
+      }
+
+      function slugify(value) {
+        return clean(value).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || `story-${Date.now()}`;
+      }
+
+      function normalizeStory(story, categoryName, index) {
+        const headline = clean(story.headline || story.title || `Story ${index + 1}`);
+        const topics = Array.isArray(story.topics) ? story.topics.map(clean).filter(Boolean) : [];
+        const publisher = clean(story.publisher || story.source || (story.sources && story.sources[0] && story.sources[0].publisher));
+        const sources = Array.isArray(story.sources) ? story.sources.map((source) => ({
+          publisher: clean(source.publisher || source.name || publisher),
+          url: clean(source.url)
+        })).filter((source) => source.publisher || source.url) : [];
+        return {
+          id: clean(story.id) || slugify(`${categoryName}-${headline}`),
+          category: clean(story.category || categoryName),
+          headline,
+          summary: clean(story.summary || story.description || story.briefing),
+          briefing: clean(story.briefing || story.summary || story.description),
+          publisher,
+          published_at: clean(story.published_at || story.date),
+          reading_minutes: Number(story.reading_minutes || story.readingMinutes || 0) || null,
+          url: clean(story.url),
+          image_url: clean(story.image_url || story.image),
+          image_alt: clean(story.image_alt || story.alt || headline),
+          topics,
+          developing: Boolean(story.developing),
+          sources
+        };
+      }
+
+      function normalizeEdition(input) {
+        const data = input && typeof input === 'object' ? input : fallbackEdition;
+        const locale = clean(data.locale) || 'en-US';
+        const categories = Array.isArray(data.categories) ? data.categories.map((category) => {
+          const name = clean(category.name || category.category);
+          const stories = Array.isArray(category.stories) ? category.stories.map((story, index) => normalizeStory(story, name, index)).filter((story) => story.headline) : [];
+          return { name, stories };
+        }).filter((category) => category.name && category.stories.length) : [];
+        return {
+          generated_at: clean(data.generated_at) || new Date().toISOString(),
+          locale,
+          categories
+        };
+      }
+
+      function allStories(edition) {
+        return edition.categories.flatMap((category) => category.stories.map((story) => ({ ...story, category: story.category || category.name })));
+      }
+
+      function formatDate(dateLike, options) {
+        const date = dateLike ? new Date(dateLike) : new Date();
+        const safeDate = Number.isNaN(date.getTime()) ? new Date() : date;
+        return new Intl.DateTimeFormat(state.edition?.locale || 'en-US', options).format(safeDate);
+      }
+
+      function relativeTime(dateLike) {
+        const date = new Date(dateLike);
+        if (!dateLike || Number.isNaN(date.getTime())) return '';
+        const diffMinutes = Math.round((date.getTime() - Date.now()) / 60000);
+        const formatter = new Intl.RelativeTimeFormat(state.edition?.locale || 'en-US', { numeric: 'auto' });
+        if (Math.abs(diffMinutes) < 60) return formatter.format(diffMinutes, 'minute');
+        const diffHours = Math.round(diffMinutes / 60);
+        if (Math.abs(diffHours) < 24) return formatter.format(diffHours, 'hour');
+        return formatter.format(Math.round(diffHours / 24), 'day');
+      }
+
+      function metaLine(story) {
+        return [story.publisher, relativeTime(story.published_at), story.reading_minutes ? `${story.reading_minutes} min` : ''].filter(Boolean).join(' · ');
+      }
+
+      function fallbackImage(label) {
+        return `<div class="image-fallback">${escapeHtml(label || 'Arc')}</div>`;
+      }
+
+      function imageMarkup(story, small = false) {
+        if (!story.image_url) return fallbackImage(story.category);
+        return `<img src="${escapeHtml(story.image_url)}" alt="${escapeHtml(story.image_alt || story.headline)}" loading="lazy" decoding="async">`;
+      }
+
+      function renderHome() {
+        const home = $('view-home');
+        home.querySelectorAll('.category-block').forEach((block) => block.remove());
+        state.edition.categories.forEach((category) => {
+          const block = document.createElement('section');
+          block.className = 'category-block';
+          block.dataset.category = category.name;
+          block.innerHTML = `
+            <div class="category-head">
+              <div><div class="category-label">${escapeHtml(category.name)}</div><h2 class="category-title">${escapeHtml(category.name)} <em>briefing.</em></h2></div>
+              <div class="category-count">${category.stories.length} ${category.stories.length === 1 ? 'story' : 'stories'}</div>
+            </div>
+            <div class="carousel"></div>
+            <div class="carousel-dots">${category.stories.map((_, i) => `<span${i === 0 ? '' : ''}></span>`).join('')}</div>
+          `;
+          const carousel = block.querySelector('.carousel');
+          category.stories.forEach((story) => {
+            const index = state.stories.findIndex((candidate) => candidate.id === story.id);
+            const topic = story.topics[0] || story.category || category.name;
+            const card = document.createElement('button');
+            card.className = 'carousel-card';
+            card.type = 'button';
+            card.dataset.article = String(index);
+            card.innerHTML = `
+              <div class="carousel-media">${story.image_url ? `<img src="${escapeHtml(story.image_url)}" alt="${escapeHtml(story.image_alt || story.headline)}" loading="lazy" decoding="async">` : fallbackImage(category.name)}</div>
+              <div class="carousel-copy">
+                <div class="eyebrow">${escapeHtml(topic)}</div>
+                <h3>${escapeHtml(story.headline)}</h3>
+                ${story.summary ? `<p>${escapeHtml(story.summary)}</p>` : ''}
+                <div class="carousel-meta"><span>${metaLine(story) ? escapeHtml(metaLine(story)) : '&nbsp;'}</span><span>Read</span></div>
+              </div>
+            `;
+            const img = card.querySelector('img');
+            if (img) img.addEventListener('error', () => img.replaceWith(Object.assign(document.createElement('div'), { className: 'image-fallback', textContent: category.name })));
+            card.addEventListener('click', () => openStory(story.id));
+            carousel.append(card);
+          });
+          home.append(block);
+        });
+      }
+
+      function renderExplore() {
+        const grid = document.querySelector('#view-explore .discover-grid');
+        const topics = [...new Set(state.stories.flatMap((story) => story.topics))].filter(Boolean).slice(0, 8);
+        const developing = state.stories.filter((story) => story.developing);
+        const items = [];
+        state.edition.categories.forEach((category, index) => {
+          items.push({ label: `Category · ${String(index + 1).padStart(2, '0')}`, title: category.name, text: `${category.stories.length} ${category.stories.length === 1 ? 'story' : 'stories'} in today's edition.`, count: `${category.stories.reduce((sum, story) => sum + (story.reading_minutes || 2), 0)} minutes`, wide: index === 0 });
+        });
+        if (topics.length) items.push({ label: 'Topics', title: 'Today in focus', text: topics.join(', '), count: `${topics.length} topics`, wide: true });
+        if (developing.length) items.push({ label: 'Developing', title: 'Still moving', text: developing.map((story) => story.headline).slice(0, 2).join(' · '), count: `${developing.length} developing`, wide: true });
+        grid.innerHTML = items.map((item) => `
+          <article class="discover-card ${item.wide ? 'wide ' : ''}glass-card">
+            <div class="discover-index">${escapeHtml(item.label)}</div>
+            <div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.text)}</p></div>
+            <div class="discover-foot"><span>${escapeHtml(item.count)}</span><span class="soft-arrow">-></span></div>
+          </article>
+        `).join('');
+      }
+
+      function getSavedStories() {
+        return readJson(SAVED_KEY, []);
+      }
+
+      function setSavedStories(stories) {
+        writeJson(SAVED_KEY, stories);
+        renderSaved();
+        renderProfile();
+      }
+
+      function isSaved(storyId) {
+        return getSavedStories().some((story) => story.id === storyId);
+      }
+
+      function renderSaved() {
+        const saved = getSavedStories();
+        const sorted = [...saved].sort((a, b) => state.savedSort === 'shortest' ? (a.reading_minutes || 99) - (b.reading_minutes || 99) : clean(b.saved_at).localeCompare(clean(a.saved_at)));
+        const minutes = sorted.reduce((sum, story) => sum + (story.reading_minutes || 2), 0);
+        document.querySelector('.saved-count').innerHTML = `${sorted.length} <em>${sorted.length === 1 ? 'story' : 'stories'}</em>`;
+        document.querySelector('.saved-label').textContent = sorted.length ? `About ${minutes} ${minutes === 1 ? 'minute' : 'minutes'} of reading` : 'Nothing saved yet';
+        $('savedList').innerHTML = sorted.length ? sorted.map((story) => `
+          <article class="saved-item">
+            <button class="saved-thumb" type="button" data-open-saved="${escapeHtml(story.id)}" aria-label="Open ${escapeHtml(story.headline)}">${story.image_url ? `<img src="${escapeHtml(story.image_url)}" alt="${escapeHtml(story.image_alt || story.headline)}" loading="lazy" decoding="async">` : fallbackImage(story.category)}</button>
+            <div><h3>${escapeHtml(story.headline)}</h3><p>${escapeHtml([story.category, story.reading_minutes ? `${story.reading_minutes} min` : ''].filter(Boolean).join(' · '))}</p></div>
+            <button class="remove-save" data-remove-saved="${escapeHtml(story.id)}" aria-label="Remove saved story">x</button>
+          </article>
+        `).join('') : '<p class="view-subtitle">Saved stories will appear here and remain readable even after the next edition arrives.</p>';
+        document.querySelectorAll('[data-open-saved]').forEach((button) => button.addEventListener('click', () => openStory(button.dataset.openSaved)));
+        document.querySelectorAll('[data-remove-saved]').forEach((button) => button.addEventListener('click', () => toggleSaved(button.dataset.removeSaved)));
+      }
+
+      function renderProfile() {
+        const stats = document.querySelectorAll('.stat strong');
+        if (stats[0]) stats[0].textContent = state.stories.length;
+        if (stats[1]) stats[1].textContent = getSavedStories().length;
+        if (stats[2]) stats[2].textContent = new Set(state.stories.flatMap((story) => story.topics)).size;
+      }
+
+      function getPrefs() {
+        return readJson(PREFS_KEY, { gentleBriefing: true, localContext: true, eveningMode: false });
+      }
+
+      function renderPrefs() {
+        const prefs = getPrefs();
+        document.querySelectorAll('.setting-row').forEach((row) => {
+          const key = row.querySelector('strong').textContent.toLowerCase().replace(/\s+([a-z])/g, (_, char) => char.toUpperCase()).replace(/\s/g, '');
+          row.classList.toggle('on', Boolean(prefs[key]));
+          row.onclick = () => {
+            const next = getPrefs();
+            next[key] = !row.classList.contains('on');
+            writeJson(PREFS_KEY, next);
+            renderPrefs();
+          };
+        });
+      }
+
+      function renderEdition(editionInput) {
+        state.edition = normalizeEdition(editionInput);
+        state.stories = allStories(state.edition);
+        renderHome();
+        renderExplore();
+        renderSaved();
+        renderPrefs();
+        renderProfile();
+        updateDateTime();
+      }
+
+      function storyById(storyId) {
+        return state.stories.find((story) => story.id === storyId) || getSavedStories().find((story) => story.id === storyId);
+      }
+
+      function renderStory(index) {
+        if (!state.stories.length) return;
+        state.currentIndex = (index + state.stories.length) % state.stories.length;
+        const story = state.stories[state.currentIndex];
+        const categoryLabel = [story.category, story.topics[0]].filter(Boolean).join(' · ');
+        const hero = document.querySelector('.reader-hero');
+        const image = $('readerImage');
+        if (story.image_url) {
+          hero.classList.remove('is-hidden');
+          image.src = story.image_url;
+          image.alt = story.image_alt || story.headline;
+          image.onerror = () => hero.classList.add('is-hidden');
+        } else {
+          image.removeAttribute('src');
+          image.alt = '';
+          hero.classList.add('is-hidden');
+        }
+        $('readerCategory').textContent = categoryLabel || story.category;
+        $('readerTitle').textContent = story.headline;
+        $('readerDek').textContent = story.summary;
+        $('readerAuthor').textContent = story.publisher || 'Arc briefing';
+        $('readerTime').textContent = [relativeTime(story.published_at), story.reading_minutes ? `${story.reading_minutes} min read` : ''].filter(Boolean).join(' · ');
+        $('readerPosition').textContent = categoryLabel || story.category;
+        $('readerCounter').textContent = `${state.currentIndex + 1} / ${state.stories.length}`;
+        $('readerBody').innerHTML = '';
+        [story.briefing || story.summary, 'Generated briefing, not the publisher full article.'].filter(Boolean).forEach((text) => {
+          const p = document.createElement('p');
+          p.textContent = text;
+          $('readerBody').append(p);
+        });
+        const sourcesWrap = $('readerSourcesWrap');
+        const sources = story.sources.length ? story.sources : (story.url ? [{ publisher: story.publisher || 'Original story', url: story.url }] : []);
+        sourcesWrap.classList.toggle('is-hidden', !sources.length);
+        $('readerSources').innerHTML = sources.map((source) => source.url ? `<a href="${escapeHtml(source.url)}" target="_blank" rel="noopener">${escapeHtml(source.publisher || source.url)}</a>` : `<span>${escapeHtml(source.publisher)}</span>`).join('');
+        $('readerActions').classList.toggle('is-hidden', !story.url);
+        if (story.url) $('readerOriginal').href = story.url;
+        const nextStory = state.stories[(state.currentIndex + 1) % state.stories.length];
+        $('controlCurrentHeadline').textContent = story.headline;
+        $('controlNextHeadline').textContent = nextStory ? nextStory.headline : '';
+        updateSaveButton(story.id);
+        readerShell.scrollTop = 0;
+        scheduleProgress();
+      }
+
+      function updateSaveButton(storyId) {
+        const saved = isSaved(storyId);
+        const button = $('readerSave');
+        button.setAttribute('aria-pressed', String(saved));
+        button.style.opacity = saved ? '.9' : '.58';
+        button.querySelector('svg').setAttribute('fill', saved ? 'currentColor' : 'none');
+      }
+
+      function openStory(storyId) {
+        const index = state.stories.findIndex((story) => story.id === storyId);
+        if (index >= 0) {
+          renderStory(index);
+        } else {
+          const saved = storyById(storyId);
+          if (!saved) return;
+          state.stories = [...allStories(state.edition), saved].filter((story, position, list) => list.findIndex((candidate) => candidate.id === story.id) === position);
+          renderStory(state.stories.findIndex((story) => story.id === saved.id));
+        }
+        reader.classList.add('open');
+        reader.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeStory() {
+        reader.classList.remove('open');
+        reader.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+      }
+
+      function nextStory() {
+        renderStory(state.currentIndex + 1);
+      }
+
+      function previousStory() {
+        renderStory(state.currentIndex - 1);
+      }
+
+      function toggleSaved(storyId = state.stories[state.currentIndex]?.id) {
+        const story = storyById(storyId);
+        if (!story) return getSavedStories();
+        const saved = getSavedStories();
+        const exists = saved.some((item) => item.id === story.id);
+        const next = exists ? saved.filter((item) => item.id !== story.id) : [{ ...story, saved_at: new Date().toISOString() }, ...saved.filter((item) => item.id !== story.id)];
+        setSavedStories(next);
+        updateSaveButton(story.id);
+        toast.textContent = exists ? 'Removed from Saved' : 'Saved for later';
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 1500);
+        return next;
+      }
+
+      function clearSavedStories() {
+        setSavedStories([]);
+        updateSaveButton(state.stories[state.currentIndex]?.id);
+        return [];
+      }
+
+      function getSpokenBriefing() {
+        const edition = state.edition || normalizeEdition(fallbackEdition);
+        const lines = ['DAILY BRIEFING', formatDate(edition.generated_at, { dateStyle: 'full', timeStyle: 'short' }), ''];
+        edition.categories.forEach((category) => {
+          if (!category.stories.length) return;
+          lines.push(category.name.toUpperCase());
+          category.stories.forEach((story) => lines.push(story.summary || story.briefing || story.headline));
+          lines.push('');
+        });
+        lines.push('That is your daily briefing.');
+        return lines.join('\n').replace(/\n{3,}/g, '\n\n');
+      }
+
+      let progressFrame = 0;
+      function scheduleProgress() {
+        cancelAnimationFrame(progressFrame);
+        progressFrame = requestAnimationFrame(updateReaderProgress);
+      }
+
+      function updateReaderProgress() {
+        const maxScroll = readerShell.scrollHeight - readerShell.clientHeight;
+        const progress = maxScroll > 0 ? readerShell.scrollTop / maxScroll : 0;
+        $('controlProgress').style.width = `${Math.max(0, Math.min(1, progress)) * 100}%`;
+      }
+
+      function updateDateTime() {
+        const now = new Date();
+        const hour = now.getHours();
+        const edition = hour < 12 ? 'Morning Edition' : hour < 18 ? 'Afternoon Edition' : 'Evening Edition';
+        const day = new Intl.DateTimeFormat(state.edition?.locale || 'en-US', { weekday: 'long' }).format(now);
+        const date = new Intl.DateTimeFormat(state.edition?.locale || 'en-US', { month: 'long', day: 'numeric' }).format(now);
+        const time = new Intl.DateTimeFormat(state.edition?.locale || 'en-US', { hour: '2-digit', minute: '2-digit' }).format(now);
+        $('editionLabel').textContent = edition;
+        $('datePrimary').innerHTML = `${escapeHtml(day)}, <em>${escapeHtml(date)}</em>`;
+        $('dateSecondary').textContent = state.edition?.generated_at ? `Generated ${formatDate(state.edition.generated_at, { dateStyle: 'medium', timeStyle: 'short' })}` : 'Your personal edition';
+        $('liveClock').textContent = time;
+        $('clockPeriod').textContent = 'Local time';
+      }
+
+      function parseInlineEdition() {
+        const node = $('arc-edition-data');
+        if (!node || !node.textContent.trim()) return null;
+        return JSON.parse(node.textContent);
+      }
+
+      function parseQueryEdition() {
+        const raw = new URLSearchParams(location.search).get('edition');
+        return raw ? JSON.parse(raw) : null;
+      }
+
+      async function loadInitialEdition() {
+        try {
+          const inline = parseInlineEdition();
+          if (inline && !state.loadedByInjection) return renderEdition(inline);
+        } catch (error) {
+          console.warn('Arc inline edition could not be parsed.', error);
+        }
+        try {
+          const query = parseQueryEdition();
+          if (query && !state.loadedByInjection) return renderEdition(query);
+        } catch (error) {
+          console.warn('Arc query edition could not be parsed.', error);
+        }
+        try {
+          const response = await fetch('./arc.edition.json', { cache: 'no-store' });
+          if (response.ok && !state.loadedByInjection) return renderEdition(await response.json());
+        } catch (error) {
+          console.info('Arc live edition not found; using embedded fallback.', error);
+        }
+        if (!state.loadedByInjection) renderEdition(fallbackEdition);
+      }
+
+      window.Arc = {
+        loadEdition(data) {
+          state.loadedByInjection = true;
+          renderEdition(data);
+          return state.edition;
+        },
+        getEdition() {
+          return state.edition;
+        },
+        openStory,
+        closeStory,
+        nextStory,
+        previousStory,
+        toggleSaved,
+        getSavedStories,
+        clearSavedStories,
+        getSpokenBriefing
+      };
+
+      addEventListener('scroll', () => topbar.classList.toggle('scrolled', scrollY > 8), { passive: true });
+      document.querySelectorAll('.nav-item').forEach((button) => {
+        button.addEventListener('click', () => {
+          const target = button.dataset.viewTarget;
+          document.querySelectorAll('.nav-item').forEach((item) => {
+            item.classList.toggle('active', item === button);
+            item.setAttribute('aria-current', item === button ? 'page' : 'false');
+          });
+          document.querySelectorAll('.view').forEach((view) => view.classList.toggle('active', view.dataset.view === target));
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+      });
+      $('savedFilter').addEventListener('click', (event) => {
+        state.savedSort = state.savedSort === 'recent' ? 'shortest' : 'recent';
+        event.currentTarget.textContent = state.savedSort === 'recent' ? 'Recent first' : 'Shortest first';
+        renderSaved();
+      });
+      $('searchButton').addEventListener('click', () => {
+        toast.textContent = 'Search arrives after live editions';
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 1800);
+      });
+      $('readerClose').addEventListener('click', closeStory);
+      $('readerPrev').addEventListener('click', previousStory);
+      $('readerNext').addEventListener('click', nextStory);
+      $('readerSave').addEventListener('click', () => toggleSaved());
+      readerShell.addEventListener('scroll', scheduleProgress, { passive: true });
+      addEventListener('resize', scheduleProgress, { passive: true });
+      addEventListener('orientationchange', scheduleProgress, { passive: true });
+      document.fonts?.ready.then(scheduleProgress);
+      new ResizeObserver(scheduleProgress).observe(readerShell);
+      setInterval(updateDateTime, 30000);
+      loadInitialEdition();
+    })();
+  </script>
+</body>
+</html>

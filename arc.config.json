@@ -1,0 +1,109 @@
+{
+  "name": "Arc",
+  "version": "1.0.0",
+  "settings": {
+    "lookback_hours": 30,
+    "maximum_items_per_feed": 10,
+    "maximum_stories_per_category": 5,
+    "deduplicate_titles": true,
+    "remove_publisher_suffix_from_titles": true,
+    "include_timestamp": true,
+    "speak_briefing": true,
+    "locale": "en-US"
+  },
+  "categories": [
+    {
+      "name": "World",
+      "enabled": true,
+      "sources": [
+        {"name": "Google News — World", "url": "https://news.google.com/rss/headlines/section/topic/WORLD?hl=en-US&gl=US&ceid=US%3Aen", "type": "aggregator"},
+        {"name": "BBC News — World", "url": "https://feeds.bbci.co.uk/news/world/rss.xml", "type": "publisher"},
+        {"name": "The Guardian — World", "url": "https://www.theguardian.com/world/rss", "type": "publisher"}
+      ]
+    },
+    {
+      "name": "Politics",
+      "enabled": true,
+      "sources": [
+        {"name": "Google News — Politics", "url": "https://news.google.com/rss/search?q=%28politics%20OR%20election%20OR%20government%20OR%20parliament%20OR%20congress%29%20when%3A1d&hl=en-US&gl=US&ceid=US%3Aen", "type": "aggregator"},
+        {"name": "NPR — Politics", "url": "https://feeds.npr.org/1014/rss.xml", "type": "publisher"},
+        {"name": "The Guardian — US Politics", "url": "https://www.theguardian.com/us-news/us-politics/rss", "type": "publisher"}
+      ]
+    },
+    {
+      "name": "Business",
+      "enabled": true,
+      "sources": [
+        {"name": "Google News — Business", "url": "https://news.google.com/rss/headlines/section/topic/BUSINESS?hl=en-US&gl=US&ceid=US%3Aen", "type": "aggregator"},
+        {"name": "BBC News — Business", "url": "https://feeds.bbci.co.uk/news/business/rss.xml", "type": "publisher"},
+        {"name": "The Guardian — Business", "url": "https://www.theguardian.com/business/rss", "type": "publisher"}
+      ]
+    },
+    {
+      "name": "Technology",
+      "enabled": true,
+      "sources": [
+        {"name": "Google News — Technology", "url": "https://news.google.com/rss/headlines/section/topic/TECHNOLOGY?hl=en-US&gl=US&ceid=US%3Aen", "type": "aggregator"},
+        {"name": "BBC News — Technology", "url": "https://feeds.bbci.co.uk/news/technology/rss.xml", "type": "publisher"},
+        {"name": "Ars Technica", "url": "https://feeds.arstechnica.com/arstechnica/index", "type": "publisher"}
+      ]
+    },
+    {
+      "name": "Sports",
+      "enabled": true,
+      "sources": [
+        {"name": "Google News — Sports", "url": "https://news.google.com/rss/headlines/section/topic/SPORTS?hl=en-US&gl=US&ceid=US%3Aen", "type": "aggregator"},
+        {"name": "BBC Sport", "url": "https://feeds.bbci.co.uk/sport/rss.xml", "type": "publisher"},
+        {"name": "The Guardian — Sport", "url": "https://www.theguardian.com/sport/rss", "type": "publisher"}
+      ]
+    },
+    {
+      "name": "Entertainment",
+      "enabled": true,
+      "sources": [
+        {"name": "Google News — Entertainment", "url": "https://news.google.com/rss/headlines/section/topic/ENTERTAINMENT?hl=en-US&gl=US&ceid=US%3Aen", "type": "aggregator"},
+        {"name": "BBC News — Entertainment & Arts", "url": "https://feeds.bbci.co.uk/news/entertainment_and_arts/rss.xml", "type": "publisher"},
+        {"name": "Variety", "url": "https://variety.com/feed/", "type": "publisher"}
+      ]
+    },
+    {
+      "name": "Science",
+      "enabled": true,
+      "sources": [
+        {"name": "Google News — Science", "url": "https://news.google.com/rss/headlines/section/topic/SCIENCE?hl=en-US&gl=US&ceid=US%3Aen", "type": "aggregator"},
+        {"name": "BBC News — Science & Environment", "url": "https://feeds.bbci.co.uk/news/science_and_environment/rss.xml", "type": "publisher"},
+        {"name": "NASA — News Releases", "url": "https://www.nasa.gov/news-release/feed/", "type": "primary"},
+        {"name": "Nature", "url": "https://www.nature.com/nature.rss", "type": "primary"}
+      ]
+    },
+    {
+      "name": "Health",
+      "enabled": true,
+      "sources": [
+        {"name": "Google News — Health", "url": "https://news.google.com/rss/headlines/section/topic/HEALTH?hl=en-US&gl=US&ceid=US%3Aen", "type": "aggregator"}
+      ]
+    },
+    {
+      "name": "Vietnam",
+      "enabled": true,
+      "sources": [
+        {"name": "Google News — Vietnam", "url": "https://news.google.com/rss/headlines/section/geo/Vietnam?hl=en&gl=VN&ceid=VN%3Aen", "type": "aggregator"}
+      ]
+    },
+    {
+      "name": "Climate",
+      "enabled": true,
+      "sources": [
+        {"name": "Google News — Climate", "url": "https://news.google.com/rss/search?q=%28climate%20OR%20environment%20OR%20extreme%20weather%29%20when%3A1d&hl=en-US&gl=US&ceid=US%3Aen", "type": "aggregator"}
+      ]
+    },
+    {
+      "name": "AI & Cybersecurity",
+      "enabled": true,
+      "sources": [
+        {"name": "Google News — AI & Cybersecurity", "url": "https://news.google.com/rss/search?q=%28artificial%20intelligence%20OR%20generative%20AI%20OR%20cybersecurity%20OR%20data%20breach%29%20when%3A1d&hl=en-US&gl=US&ceid=US%3Aen", "type": "aggregator"}
+      ]
+    }
+  ],
+  "apple_intelligence_prompt": "You are generating an Arc daily edition from RSS story inputs.\n\nReturn valid JSON only. Do not wrap the response in Markdown, code fences, commentary, bullets, or prose outside the JSON object.\n\nUse this exact top-level shape:\n{\n  \"generated_at\": \"ISO-8601 timestamp with timezone\",\n  \"locale\": \"en-US\",\n  \"categories\": [\n    {\n      \"name\": \"World\",\n      \"stories\": [\n        {\n          \"id\": \"stable-url-safe-id\",\n          \"headline\": \"Headline shown in Arc\",\n          \"summary\": \"One concise sentence for the carousel.\",\n          \"briefing\": \"Two to three factual sentences for the reader view.\",\n          \"publisher\": \"Publisher name\",\n          \"published_at\": \"ISO-8601 timestamp with timezone when available\",\n          \"reading_minutes\": 2,\n          \"url\": \"Original story URL when available\",\n          \"image_url\": \"Image URL when available\",\n          \"image_alt\": \"Factual image description when available\",\n          \"topics\": [\"Topic\"],\n          \"developing\": false,\n          \"sources\": [\n            { \"publisher\": \"Publisher name\", \"url\": \"Original story URL\" }\n          ]\n        }\n      ]\n    }\n  ]\n}\n\nProcess each category independently. Include only categories with meaningful recent stories.\n\nFor each category:\n- Select no more than 5 distinct, newsworthy developments.\n- Prioritize events with broad real-world significance.\n- Prefer new developments over opinion, analysis, speculation, or repeated coverage.\n- Merge duplicate stories that describe the same event.\n- Use information supported by multiple sources when available.\n- Preserve important names, organizations, locations, dates, figures, and outcomes.\n- Clearly indicate material uncertainty, conflicting reports, or developing situations.\n- Set developing to true only when the story is explicitly ongoing or materially unresolved.\n- Do not invent facts, context, quotations, causes, images, publishers, URLs, or conclusions.\n- Ignore advertisements, sponsored material, navigation text, and unrelated feed content.\n- Do not mention RSS feeds.\n\nField rules:\n- id must be lowercase, stable, URL-safe, and unique across the edition.\n- headline must be clear and factual, not sensational.\n- summary must be concise and suitable for a small card.\n- briefing must not imply it is the publisher's full article.\n- reading_minutes should usually be 1 to 3 for Arc-generated briefings.\n- topics should contain short useful labels, not hashtags.\n- sources should include the original supporting publisher URLs when available.\n- Optional fields may be null or omitted when unknown.\n\nOutput valid JSON only."
+}
