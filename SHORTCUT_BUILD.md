@@ -1,6 +1,18 @@
-# Build The Arc iOS Shortcut
+# Build The Arc Shortcut
 
-This is the practical Shortcuts action list for turning Arc into a working iPhone Shortcut.
+This is the practical Shortcuts action list for turning Arc into a working Shortcut.
+
+Best current architecture for this Mac:
+
+```text
+Mac Shortcut
+  -> Run Shell Script: scrape RSS locally
+  -> Use Model: Apple Intelligence creates Arc edition JSON
+  -> Run Shell Script: encode JSON into Arc URL
+  -> Open URLs: hosted GitHub Pages Arc app
+```
+
+This keeps scraping/parsing local and uses the hosted GitHub Pages app only as the reader UI.
 
 Recommended path: host `index.html` somewhere HTTPS-accessible, then let the Shortcut open:
 
@@ -20,11 +32,128 @@ The Shortcut can still run without a backend. It gathers RSS, asks Apple Intelli
 
 ## Requirements
 
-- iPhone with Apple Intelligence actions available in Shortcuts.
+- Mac with Apple Intelligence actions available in Shortcuts for the recommended local scraper flow.
+- iPhone with Apple Intelligence actions available in Shortcuts only if using the iPhone-only flow.
 - Arc `index.html` hosted at an HTTPS URL.
 - The text from `arc.config.json` field `apple_intelligence_prompt`.
 
-## Shortcut Name
+## Mac-Local Shortcut Name
+
+```text
+Open Arc Briefing
+```
+
+## Mac-Local Actions
+
+### 1. Scrape RSS Locally
+
+Action: `Run Shell Script`
+
+Shell:
+
+```text
+/bin/zsh
+```
+
+Input:
+
+```text
+None
+```
+
+Script:
+
+```sh
+python3 /Users/hoanghuuquoc/Downloads/arc-handoff-package/scripts/arc_scrape_rss.py >/tmp/arc_scrape_status.txt
+cat /Users/hoanghuuquoc/Downloads/arc-handoff-package/arc.ai-input.txt
+```
+
+This returns Apple Intelligence-ready text from the current RSS feeds.
+
+### 2. Combine Prompt And Scraped Text
+
+Action: `Text`
+
+Paste:
+
+```text
+[contents of shortcut-apple-intelligence-prompt.txt]
+
+Input RSS bundle:
+Shortcut Input
+```
+
+In Shortcuts, replace `Shortcut Input` with the output from the previous shell action.
+
+### 3. Generate Edition JSON
+
+Action: `Use Model`
+
+Recommended model:
+
+```text
+Private Cloud Compute
+```
+
+Input:
+
+```text
+Text
+```
+
+Action: `Get Text from Input`
+
+Action: `Set Variable`
+
+```text
+EditionJSON
+```
+
+### 4. Validate JSON
+
+Action: `Get Dictionary from Input`
+
+Input:
+
+```text
+EditionJSON
+```
+
+If this fails, temporarily add `Show Result` after `EditionJSON` to inspect what Apple Intelligence returned.
+
+### 5. Make Hosted Arc URL
+
+Action: `Run Shell Script`
+
+Shell:
+
+```text
+/bin/zsh
+```
+
+Input:
+
+```text
+EditionJSON
+```
+
+Script:
+
+```sh
+python3 /Users/hoanghuuquoc/Downloads/arc-handoff-package/scripts/arc_make_url.py
+```
+
+### 6. Open Arc
+
+Action: `Open URLs`
+
+Input:
+
+```text
+Run Shell Script Result
+```
+
+## iPhone-Only Shortcut Name
 
 ```text
 Open Arc Briefing
